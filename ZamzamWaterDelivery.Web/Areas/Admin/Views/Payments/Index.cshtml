@@ -1,0 +1,57 @@
+@model ListViewModel<PaymentDto, PaymentFilter>
+@{
+    ViewData["Title"] = "Payments";
+    var f = Model.Filter;
+}
+<h1 class="h3 fw-bold mb-4">Payments</h1>
+<form method="get" class="card border-0 shadow-sm p-3 mb-3">
+    <div class="row g-2">
+        <div class="col-md-3"><input name="Search" value="@f.Search" class="form-control" placeholder="Order #, customer, reference..." aria-label="Search" /></div>
+        <div class="col-6 col-md-2"><select name="Status" class="form-select" asp-items='Ui.EnumOptions(f.Status, "All statuses")' aria-label="Status"></select></div>
+        <div class="col-6 col-md-2"><select name="Method" class="form-select" asp-items='Ui.EnumOptions(f.Method, "All methods")' aria-label="Method"></select></div>
+        <div class="col-6 col-md-2"><input type="date" name="DateFrom" value="@f.DateFrom?.ToString("yyyy-MM-dd")" class="form-control" aria-label="From" /></div>
+        <div class="col-6 col-md-2"><input type="date" name="DateTo" value="@f.DateTo?.ToString("yyyy-MM-dd")" class="form-control" aria-label="To" /></div>
+        <div class="col-md-1 d-grid"><button class="btn btn-outline-primary" aria-label="Filter"><i class="bi bi-funnel"></i></button></div>
+    </div>
+</form>
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light"><tr><th>#</th><th>Order</th><th>Customer</th><th>Amount</th><th class="d-none d-md-table-cell">Method</th><th>Status</th><th class="d-none d-lg-table-cell">Reference</th><th class="d-none d-md-table-cell">Paid on</th><th></th></tr></thead>
+            <tbody>
+                @if (Model.Result.Items.Count == 0)
+                {
+                    <tr><td colspan="9" class="text-center text-muted py-5">No payments found.</td></tr>
+                }
+                @foreach (var p in Model.Result.Items)
+                {
+                    <tr>
+                        <td class="text-muted small">@p.Id</td>
+                        <td class="fw-semibold"><a asp-controller="Orders" asp-action="Details" asp-route-id="@p.OrderId">@p.OrderNumber</a></td>
+                        <td>@p.CustomerName</td>
+                        <td class="fw-semibold">@Ui.Money(p.Amount)</td>
+                        <td class="d-none d-md-table-cell small">@p.Method.ToDisplayName()</td>
+                        <td><span class="badge rounded-pill @Ui.Badge(p.Status)">@p.Status</span></td>
+                        <td class="d-none d-lg-table-cell small text-muted">@(p.TransactionReference ?? "-")</td>
+                        <td class="d-none d-md-table-cell small">@Ui.When(p.PaymentDate)</td>
+                        <td class="text-end text-nowrap">
+                            @if (p.Status is PaymentStatus.Pending or PaymentStatus.Failed)
+                            {
+                                <form asp-action="MarkPaid" asp-route-id="@p.Id" method="post" class="d-inline" data-confirm="Mark @Ui.Money(p.Amount) for @p.OrderNumber as paid?">
+                                    <button class="btn btn-sm btn-outline-success">Mark paid</button>
+                                </form>
+                            }
+                            @if (p.Status == PaymentStatus.Paid)
+                            {
+                                <form asp-action="Refund" asp-route-id="@p.Id" method="post" class="d-inline" data-confirm="Refund @Ui.Money(p.Amount) for @p.OrderNumber?">
+                                    <button class="btn btn-sm btn-outline-secondary">Refund</button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+<partial name="_Pager" model="PagerModel.From(Model.Result)" />

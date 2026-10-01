@@ -1,0 +1,133 @@
+@model CheckoutViewModel
+@{
+    ViewData["Title"] = "Checkout";
+}
+<section class="container py-5">
+    <h1 class="fw-bold mb-4"><i class="bi bi-bag-check text-primary me-2"></i>Checkout</h1>
+    <form asp-action="Index" method="post" novalidate>
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4">
+                        <h5 class="fw-semibold mb-3"><span class="step-dot">1</span>Contact information</h5>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="Checkout.FullName" class="form-label"></label>
+                                <input asp-for="Checkout.FullName" class="form-control" />
+                                <span asp-validation-for="Checkout.FullName" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Checkout.PhoneNumber" class="form-label"></label>
+                                <input asp-for="Checkout.PhoneNumber" class="form-control" />
+                                <span asp-validation-for="Checkout.PhoneNumber" class="text-danger small"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4">
+                        <h5 class="fw-semibold mb-3"><span class="step-dot">2</span>Delivery details</h5>
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label asp-for="Checkout.DeliveryAddress" class="form-label"></label>
+                                <input asp-for="Checkout.DeliveryAddress" class="form-control" placeholder="House / building, street" />
+                                <span asp-validation-for="Checkout.DeliveryAddress" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Checkout.City" class="form-label"></label>
+                                <input asp-for="Checkout.City" class="form-control" />
+                                <span asp-validation-for="Checkout.City" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Checkout.Location" class="form-label"></label>
+                                <input asp-for="Checkout.Location" class="form-control" placeholder="District / landmark" />
+                                <span asp-validation-for="Checkout.Location" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Checkout.PreferredDeliveryDate" class="form-label"></label>
+                                <input asp-for="Checkout.PreferredDeliveryDate" type="date" class="form-control" min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                                <span asp-validation-for="Checkout.PreferredDeliveryDate" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Checkout.PreferredTimeSlot" class="form-label"></label>
+                                <select asp-for="Checkout.PreferredTimeSlot" class="form-select" asp-items="@(new SelectList(Model.TimeSlots))"></select>
+                            </div>
+                            <div class="col-12">
+                                <label asp-for="Checkout.Notes" class="form-label"></label>
+                                <textarea asp-for="Checkout.Notes" class="form-control" rows="2" placeholder="e.g. Call when you arrive, 2nd floor, blue gate..."></textarea>
+                                <span asp-validation-for="Checkout.Notes" class="text-danger small"></span>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-check">
+                                    <input asp-for="Checkout.SaveAsDefaultAddress" class="form-check-input" />
+                                    <label asp-for="Checkout.SaveAsDefaultAddress" class="form-check-label"></label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h5 class="fw-semibold mb-3"><span class="step-dot">3</span>Payment method</h5>
+                        @foreach (var method in Enum.GetValues<PaymentMethod>())
+                        {
+                            var available = Model.AvailableMethods.Contains(method);
+                            var icon = method switch { PaymentMethod.CashOnDelivery => "bi-cash-coin", PaymentMethod.MobileMoney => "bi-phone", _ => "bi-credit-card" };
+                            <label class="payment-option @(available ? "" : "disabled")">
+                                <input type="radio" name="Checkout.PaymentMethod" value="@method" class="form-check-input me-3"
+                                       checked="@(Model.Checkout.PaymentMethod == method)" disabled="@(!available)" />
+                                <i class="bi @icon fs-4 text-primary me-3"></i>
+                                <span class="flex-grow-1">
+                                    <span class="d-block fw-semibold">@method.ToDisplayName()</span>
+                                    <small class="text-muted">
+                                        @(method switch
+                                        {
+                                            PaymentMethod.CashOnDelivery => "Pay the driver in cash when your water arrives.",
+                                            PaymentMethod.MobileMoney => "EVC Plus, Zaad, Sahal",
+                                            _ => "Visa / Mastercard"
+                                        })
+                                    </small>
+                                </span>
+                                @if (!available)
+                                {
+                                    <span class="badge bg-secondary-subtle text-secondary-emphasis">Coming soon</span>
+                                }
+                            </label>
+                        }
+                        <span asp-validation-for="Checkout.PaymentMethod" class="text-danger small"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm sticky-summary">
+                    <div class="card-body p-4">
+                        <h5 class="fw-semibold mb-3">Your order</h5>
+                        <ul class="list-unstyled mb-3">
+                            @foreach (var item in Model.Cart.Items)
+                            {
+                                <li class="d-flex justify-content-between small mb-2">
+                                    <span>@item.Quantity &times; @item.ProductName</span>
+                                    <span>@Ui.Money(item.LineTotal)</span>
+                                </li>
+                            }
+                        </ul>
+                        <hr />
+                        <div class="d-flex justify-content-between mb-2"><span class="text-muted">Subtotal</span><span>@Ui.Money(Model.Cart.SubTotal)</span></div>
+                        <div class="d-flex justify-content-between mb-2"><span class="text-muted">Delivery fee</span><span>@Ui.Money(Model.Cart.DeliveryFee)</span></div>
+                        <hr />
+                        <div class="d-flex justify-content-between fs-5 fw-bold mb-4"><span>Total</span><span class="text-primary">@Ui.Money(Model.Cart.Total)</span></div>
+                        <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill" data-loading="Placing order...">
+                            <i class="bi bi-check2-circle me-1"></i>Place order
+                        </button>
+                        <a asp-controller="Cart" asp-action="Index" class="btn btn-link w-100 mt-2 text-decoration-none">Edit cart</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</section>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

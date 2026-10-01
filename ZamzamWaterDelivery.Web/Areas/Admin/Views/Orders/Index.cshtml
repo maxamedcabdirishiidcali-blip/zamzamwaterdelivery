@@ -1,0 +1,67 @@
+@model ListViewModel<OrderDto, OrderFilter>
+@{
+    ViewData["Title"] = "Orders";
+    var f = Model.Filter;
+}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 fw-bold mb-0">Orders</h1>
+    <a asp-controller="Reports" asp-action="Export" asp-route-Type="Orders" asp-route-From="@f.DateFrom?.ToString("yyyy-MM-dd")" asp-route-To="@f.DateTo?.ToString("yyyy-MM-dd")" asp-route-format="Excel" class="btn btn-outline-success btn-sm"><i class="bi bi-file-earmark-excel me-1"></i>Export</a>
+</div>
+
+<form method="get" class="card border-0 shadow-sm p-3 mb-3">
+    @if (f.CustomerId.HasValue)
+    {
+        <input type="hidden" name="CustomerId" value="@f.CustomerId" />
+        <div class="small mb-2">Filtered by customer #@f.CustomerId <a asp-action="Index">clear</a></div>
+    }
+    <div class="row g-2">
+        <div class="col-md-3"><input name="Search" value="@f.Search" class="form-control" placeholder="Order #, customer, phone..." aria-label="Search" /></div>
+        <div class="col-6 col-md-2">
+            <select name="Status" class="form-select" asp-items='Ui.EnumOptions(f.Status, "All statuses")' aria-label="Status"></select>
+        </div>
+        <div class="col-6 col-md-2">
+            <select name="DriverId" class="form-select" asp-items="Model.Lookup" aria-label="Driver"><option value="">All drivers</option></select>
+        </div>
+        <div class="col-6 col-md-2"><input type="date" name="DateFrom" value="@f.DateFrom?.ToString("yyyy-MM-dd")" class="form-control" aria-label="From date" /></div>
+        <div class="col-6 col-md-2"><input type="date" name="DateTo" value="@f.DateTo?.ToString("yyyy-MM-dd")" class="form-control" aria-label="To date" /></div>
+        <div class="col-md-1 d-grid"><button class="btn btn-outline-primary" aria-label="Filter"><i class="bi bi-funnel"></i></button></div>
+    </div>
+</form>
+
+<div class="status-tabs mb-3">
+    <a asp-action="Index" class="btn btn-sm @(f.Status is null ? "btn-primary" : "btn-light")">All</a>
+    @foreach (var s in Enum.GetValues<OrderStatus>())
+    {
+        <a asp-action="Index" asp-route-Status="@s" class="btn btn-sm @(f.Status == s ? "btn-primary" : "btn-light")">@s.ToDisplayName()</a>
+    }
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr><th>Order #</th><th>Date</th><th>Customer</th><th class="d-none d-lg-table-cell">Address</th><th>Total</th><th class="d-none d-md-table-cell">Driver</th><th>Status</th><th class="d-none d-md-table-cell">Payment</th></tr>
+            </thead>
+            <tbody>
+                @if (Model.Result.Items.Count == 0)
+                {
+                    <tr><td colspan="8" class="text-center text-muted py-5">No orders match your filters.</td></tr>
+                }
+                @foreach (var o in Model.Result.Items)
+                {
+                    <tr class="clickable-row" data-href="@Url.Action("Details", new { id = o.Id })">
+                        <td class="fw-semibold"><a asp-action="Details" asp-route-id="@o.Id">@o.OrderNumber</a></td>
+                        <td class="small">@Ui.When(o.OrderDate)</td>
+                        <td>@o.CustomerName<div class="small text-muted">@o.PhoneNumber</div></td>
+                        <td class="d-none d-lg-table-cell small text-muted">@o.DeliveryAddress, @o.City</td>
+                        <td class="fw-semibold">@Ui.Money(o.Total)</td>
+                        <td class="d-none d-md-table-cell small">@(o.DriverName ?? "-")</td>
+                        <td><span class="badge rounded-pill @Ui.Badge(o.Status)">@o.Status.ToDisplayName()</span></td>
+                        <td class="d-none d-md-table-cell"><span class="badge rounded-pill @Ui.Badge(o.PaymentStatus)">@o.PaymentStatus</span></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+<partial name="_Pager" model="PagerModel.From(Model.Result)" />

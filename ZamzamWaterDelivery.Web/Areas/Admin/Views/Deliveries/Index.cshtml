@@ -1,0 +1,48 @@
+@model ListViewModel<DeliveryDto, DeliveryFilter>
+@{
+    ViewData["Title"] = "Deliveries";
+    var f = Model.Filter;
+}
+<h1 class="h3 fw-bold mb-4">Deliveries</h1>
+<form method="get" class="card border-0 shadow-sm p-3 mb-3">
+    <div class="row g-2">
+        <div class="col-md-3"><input name="Search" value="@f.Search" class="form-control" placeholder="Order #, customer, address..." aria-label="Search" /></div>
+        <div class="col-6 col-md-2"><select name="Status" class="form-select" asp-items='Ui.EnumOptions(f.Status, "All statuses")' aria-label="Status"></select></div>
+        <div class="col-6 col-md-2"><select name="DriverId" class="form-select" asp-items="Model.Lookup" aria-label="Driver"><option value="">All drivers</option></select></div>
+        <div class="col-6 col-md-2"><input type="date" name="DateFrom" value="@f.DateFrom?.ToString("yyyy-MM-dd")" class="form-control" aria-label="From" /></div>
+        <div class="col-6 col-md-2"><input type="date" name="DateTo" value="@f.DateTo?.ToString("yyyy-MM-dd")" class="form-control" aria-label="To" /></div>
+        <div class="col-md-1 d-grid"><button class="btn btn-outline-primary" aria-label="Filter"><i class="bi bi-funnel"></i></button></div>
+    </div>
+</form>
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light"><tr><th>Order #</th><th>Customer</th><th class="d-none d-lg-table-cell">Address</th><th>Driver</th><th class="d-none d-md-table-cell">Scheduled</th><th class="d-none d-md-table-cell">Fee</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+                @if (Model.Result.Items.Count == 0)
+                {
+                    <tr><td colspan="8" class="text-center text-muted py-5">No deliveries found.</td></tr>
+                }
+                @foreach (var d in Model.Result.Items)
+                {
+                    <tr>
+                        <td class="fw-semibold"><a asp-controller="Orders" asp-action="Details" asp-route-id="@d.OrderId">@d.OrderNumber</a></td>
+                        <td>@d.CustomerName<div class="small text-muted">@d.CustomerPhone</div></td>
+                        <td class="d-none d-lg-table-cell small text-muted">@d.DeliveryAddress</td>
+                        <td>@(d.DriverName ?? "Unassigned")</td>
+                        <td class="d-none d-md-table-cell small">@Ui.Date(d.DeliveryDate)<div class="text-muted">@d.DeliveryTime</div></td>
+                        <td class="d-none d-md-table-cell">@Ui.Money(d.DeliveryFee)</td>
+                        <td><span class="badge rounded-pill @Ui.Badge(d.Status)">@d.Status.ToDisplayName()</span></td>
+                        <td class="text-end">
+                            @if (d.OrderStatus is not (OrderStatus.Delivered or OrderStatus.Cancelled))
+                            {
+                                <a asp-action="Edit" asp-route-id="@d.Id" class="btn btn-sm btn-outline-primary text-nowrap"><i class="bi bi-pencil me-1"></i>@(d.DriverId is null ? "Assign" : "Manage")</a>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+<partial name="_Pager" model="PagerModel.From(Model.Result)" />

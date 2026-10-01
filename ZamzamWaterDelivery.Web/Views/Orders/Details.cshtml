@@ -1,0 +1,111 @@
+@model OrderDetailsDto
+@{
+    ViewData["Title"] = $"Order {Model.OrderNumber}";
+}
+<section class="container py-5">
+    <a asp-action="Index" class="btn btn-link text-decoration-none ps-0 mb-2"><i class="bi bi-arrow-left me-1"></i>My orders</a>
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4">
+        <div>
+            <h1 class="fw-bold mb-1">Order @Model.OrderNumber</h1>
+            <span class="text-muted">Placed @Ui.When(Model.OrderDate)</span>
+        </div>
+        <span class="badge rounded-pill fs-6 px-3 py-2 @Ui.Badge(Model.Status)"><i class="bi @Ui.Icon(Model.Status) me-1"></i>@Model.Status.ToDisplayName()</span>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+            <h5 class="fw-semibold mb-4">Delivery progress</h5>
+            <partial name="_OrderProgress" model="Model" />
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <h5 class="fw-semibold mb-3">Items</h5>
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead><tr><th>Product</th><th class="text-center">Qty</th><th class="text-end">Price</th><th class="text-end">Total</th></tr></thead>
+                            <tbody>
+                                @foreach (var item in Model.Items)
+                                {
+                                    <tr>
+                                        <td><img src="@(item.ImageUrl ?? "/images/products/bottle-20l.svg")" alt="" width="36" class="me-2" />@item.ProductName</td>
+                                        <td class="text-center">@item.Quantity</td>
+                                        <td class="text-end">@Ui.Money(item.UnitPrice)</td>
+                                        <td class="text-end">@Ui.Money(item.LineTotal)</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr><td colspan="3" class="text-end text-muted">Subtotal</td><td class="text-end">@Ui.Money(Model.SubTotal)</td></tr>
+                                <tr><td colspan="3" class="text-end text-muted">Delivery fee</td><td class="text-end">@Ui.Money(Model.DeliveryFee)</td></tr>
+                                <tr class="fw-bold"><td colspan="3" class="text-end">Total</td><td class="text-end text-primary">@Ui.Money(Model.Total)</td></tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h6 class="fw-semibold mb-3"><i class="bi bi-geo-alt text-primary me-1"></i>Delivery</h6>
+                    <p class="mb-1">@Model.CustomerName</p>
+                    <p class="mb-1 text-muted">@Model.PhoneNumber</p>
+                    <p class="mb-1 text-muted">@Model.DeliveryAddress, @Model.City</p>
+                    <p class="mb-0 small text-muted">@Ui.Date(Model.PreferredDeliveryDate) &middot; @Model.PreferredTimeSlot</p>
+                    @if (!string.IsNullOrEmpty(Model.Notes))
+                    {
+                        <p class="small mt-2 mb-0"><i class="bi bi-chat-left-text me-1"></i>@Model.Notes</p>
+                    }
+                </div>
+            </div>
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h6 class="fw-semibold mb-3"><i class="bi bi-person-badge text-primary me-1"></i>Driver</h6>
+                    @if (Model.Delivery?.DriverName is { } driverName)
+                    {
+                        <p class="mb-1 fw-semibold">@driverName</p>
+                        <a href="tel:@Ui.Tel(Model.Delivery.DriverPhone ?? "")" class="btn btn-sm btn-outline-primary rounded-pill"><i class="bi bi-telephone me-1"></i>@Model.Delivery.DriverPhone</a>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0 small">A driver will be assigned once your order is confirmed.</p>
+                    }
+                </div>
+            </div>
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h6 class="fw-semibold mb-3"><i class="bi bi-wallet2 text-primary me-1"></i>Payment</h6>
+                    <p class="mb-1">@Model.PaymentMethod.ToDisplayName()</p>
+                    <span class="badge rounded-pill @Ui.Badge(Model.PaymentStatus)">@Model.PaymentStatus</span>
+                </div>
+            </div>
+            @if (Model.Status == OrderStatus.Pending)
+            {
+                <button class="btn btn-outline-danger w-100 mt-4 rounded-pill" data-bs-toggle="modal" data-bs-target="#cancelModal"><i class="bi bi-x-circle me-1"></i>Cancel order</button>
+            }
+        </div>
+    </div>
+</section>
+
+@if (Model.Status == OrderStatus.Pending)
+{
+    <div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <form class="modal-content border-0" asp-action="Cancel" asp-route-id="@Model.Id" method="post">
+                <div class="modal-header border-0"><h5 class="modal-title" id="cancelModalTitle">Cancel order @Model.OrderNumber?</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+                <div class="modal-body">
+                    <label for="reason" class="form-label">Reason (optional)</label>
+                    <textarea id="reason" name="reason" class="form-control" rows="2" maxlength="300"></textarea>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Keep order</button>
+                    <button class="btn btn-danger" data-loading="Cancelling...">Cancel order</button>
+                </div>
+            </form>
+        </div>
+    </div>
+}

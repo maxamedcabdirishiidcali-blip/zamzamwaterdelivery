@@ -1,0 +1,33 @@
+@model OrderDetailsDto
+@{
+    var steps = OrderStatusRules.TrackingSteps;
+    var currentIndex = Array.IndexOf(steps, Model.Status);
+    var cancelled = Model.Status == OrderStatus.Cancelled;
+    var percent = cancelled ? 0 : currentIndex * 100 / (steps.Length - 1);
+}
+@if (cancelled)
+{
+    <div class="alert alert-danger d-flex align-items-center gap-3 mb-0">
+        <i class="bi bi-x-circle fs-3"></i>
+        <div>
+            <strong>This order was cancelled.</strong>
+            <div class="small">@Model.CancellationReason</div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="order-progress" role="progressbar" aria-label="Order progress" aria-valuenow="@percent" aria-valuemin="0" aria-valuemax="100">
+        <div class="order-progress-track"><div class="order-progress-fill" style="width:@percent%"></div></div>
+        <ol class="order-progress-steps">
+            @for (var i = 0; i < steps.Length; i++)
+            {
+                var state = i < currentIndex ? "done" : i == currentIndex ? "current" : "";
+                <li class="@state">
+                    <span class="step-icon"><i class="bi @Ui.Icon(steps[i])"></i></span>
+                    <span class="step-label">@steps[i].ToDisplayName()</span>
+                </li>
+            }
+        </ol>
+    </div>
+}

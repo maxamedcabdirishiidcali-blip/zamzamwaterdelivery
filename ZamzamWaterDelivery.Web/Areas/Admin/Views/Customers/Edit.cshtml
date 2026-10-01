@@ -1,0 +1,54 @@
+@model CustomerUpdateDto
+@{
+    ViewData["Title"] = "Edit Customer";
+    var id = ViewData["CustomerId"];
+}
+<a asp-action="Index" class="btn btn-link text-decoration-none ps-0"><i class="bi bi-arrow-left me-1"></i>Customers</a>
+<h1 class="h3 fw-bold mb-4">Edit Customer</h1>
+<form asp-action="Edit" asp-route-id="@id" method="post" novalidate>
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4 row g-3">
+            <div class="col-md-6">
+                <label asp-for="FullName" class="form-label"></label>
+                <input asp-for="FullName" class="form-control" />
+                <span asp-validation-for="FullName" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="PhoneNumber" class="form-label"></label>
+                <input asp-for="PhoneNumber" class="form-control" />
+                <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+            </div>
+            <div class="col-12">
+                <label asp-for="Email" class="form-label">Email (login)</label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger small"></span>
+            </div>
+            <div class="col-12">
+                <label asp-for="AddressLine" class="form-label"></label>
+                <input asp-for="AddressLine" class="form-control" placeholder="House / building, street" />
+                <span asp-validation-for="AddressLine" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="City" class="form-label"></label>
+                <input asp-for="City" class="form-control" placeholder="Garowe" />
+                <span asp-validation-for="City" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="Location" class="form-label"></label>
+                <input asp-for="Location" class="form-control" placeholder="District / landmark" />
+                <span asp-validation-for="Location" class="text-danger small"></span>
+            </div>            <div class="col-12">
+                <div class="form-check form-switch">
+                    <input asp-for="IsActive" class="form-check-input" role="switch" />
+                    <label asp-for="IsActive" class="form-check-label"></label>
+                </div>
+            </div>
+            <div class="col-12">
+                <button class="btn btn-primary" data-loading="Saving..."><i class="bi bi-check2 me-1"></i>Save</button>
+                <a asp-action="Index" class="btn btn-light ms-1">Cancel</a>
+            </div>
+        </div>
+    </div>
+</form>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

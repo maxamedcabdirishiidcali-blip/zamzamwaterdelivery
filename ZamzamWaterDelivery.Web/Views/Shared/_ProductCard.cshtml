@@ -1,0 +1,40 @@
+@model ProductDto
+@{
+    var isCustomer = User.IsInRole(Roles.Customer);
+    var isGuest = User.Identity?.IsAuthenticated != true;
+}
+<div class="card product-card h-100 border-0 shadow-sm">
+    <a asp-controller="Products" asp-action="Details" asp-route-id="@Model.Id" class="product-img-wrap">
+        <img src="@(Model.ImageUrl ?? "/images/products/bottle-20l.svg")" alt="@Model.Name" class="card-img-top" loading="lazy" />
+        @if (!Model.InStock)
+        {
+            <span class="badge bg-danger position-absolute top-0 start-0 m-3">Out of stock</span>
+        }
+        else if (Model.StockQuantity <= 20)
+        {
+            <span class="badge bg-warning text-dark position-absolute top-0 start-0 m-3">Only @Model.StockQuantity left</span>
+        }
+    </a>
+    <div class="card-body d-flex flex-column">
+        <span class="text-primary small fw-semibold">@Model.CategoryName</span>
+        <h5 class="card-title mt-1 mb-2"><a class="stretched-link-off text-reset text-decoration-none" asp-controller="Products" asp-action="Details" asp-route-id="@Model.Id">@Model.Name</a></h5>
+        <p class="card-text text-muted small flex-grow-1">@Model.Description</p>
+        <div class="d-flex align-items-center justify-content-between mt-2">
+            <span class="price">@Ui.Money(Model.Price)</span>
+            @if (isCustomer)
+            {
+                <form asp-controller="Cart" asp-action="Add" method="post" class="d-flex gap-1 add-to-cart-form">
+                    <input type="hidden" name="ProductId" value="@Model.Id" />
+                    <input type="number" name="Quantity" value="1" min="1" max="@Math.Max(1, Model.StockQuantity)" class="form-control form-control-sm qty-input" aria-label="Quantity" @(Model.InStock ? "" : "disabled") />
+                    <button type="submit" class="btn btn-primary btn-sm px-3" @(Model.InStock ? "" : "disabled") title="Add to cart">
+                        <i class="bi bi-cart-plus"></i>
+                    </button>
+                </form>
+            }
+            else if (isGuest)
+            {
+                <a class="btn btn-outline-primary btn-sm rounded-pill" asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Products">Login to order</a>
+            }
+        </div>
+    </div>
+</div>

@@ -1,0 +1,5 @@
+@model int
+<a class="nav-link position-relative px-2" asp-area="" asp-controller="Cart" asp-action="Index" aria-label="Shopping cart">
+    <i class="bi bi-cart3 fs-5"></i>
+    <span id="cart-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-info @(Model == 0 ? "d-none" : "")">@Model</span>
+</a>

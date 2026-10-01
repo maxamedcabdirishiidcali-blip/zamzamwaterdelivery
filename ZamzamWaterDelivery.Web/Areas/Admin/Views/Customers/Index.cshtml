@@ -1,0 +1,35 @@
+@model ListViewModel<CustomerDto, CustomerFilter>
+@{
+    ViewData["Title"] = "Customers";
+}
+<partial name="_PageHeader" model='new PageHeader("Customers", Url.Action("Create"), "Add Customer")' />
+<partial name="_SearchBar" model="Model.Filter.Search" />
+
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light"><tr><th>Customer</th><th class="d-none d-md-table-cell">Phone</th><th class="d-none d-lg-table-cell">Address</th><th>Orders</th><th class="d-none d-sm-table-cell">Status</th><th class="text-end">Actions</th></tr></thead>
+            <tbody>
+                @if (Model.Result.Items.Count == 0)
+                {
+                    <tr><td colspan="6" class="text-center text-muted py-5">No customers found. <a asp-action="Create">Add a customer</a>.</td></tr>
+                }
+                @foreach (var c in Model.Result.Items)
+                {
+                    <tr>
+                        <td><span class="fw-semibold">@c.FullName</span><div class="small text-muted">@c.Email</div></td>
+                        <td class="d-none d-md-table-cell"><a href="tel:@Ui.Tel(c.PhoneNumber)">@c.PhoneNumber</a></td>
+                        <td class="d-none d-lg-table-cell small text-muted">@c.AddressLine, @c.Location, @c.City</td>
+                        <td>@c.OrderCount</td>
+                        <td class="d-none d-sm-table-cell"><span class="badge rounded-pill @(c.IsActive ? "bg-success-subtle text-success-emphasis" : "bg-secondary-subtle text-secondary-emphasis")">@(c.IsActive ? "Active" : "Inactive")</span></td>
+                        <td>
+                            <partial name="_RowActions" model='new RowActions(c.FullName, Url.Action("Edit", new { id = c.Id }), Url.Action("Delete", new { id = c.Id }),
+                                Url.Action("Details", new { id = c.Id }), "Their past orders stay in the reports.")' />
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+<partial name="_Pager" model="PagerModel.From(Model.Result)" />

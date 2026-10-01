@@ -1,0 +1,83 @@
+@model DeliveryDto
+@{
+    ViewData["Title"] = $"Delivery {Model.OrderNumber}";
+    var fullAddress = $"{Model.DeliveryAddress}";
+}
+<a asp-action="Index" class="btn btn-link text-decoration-none ps-0"><i class="bi bi-arrow-left me-1"></i>My deliveries</a>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 fw-bold mb-0">@Model.OrderNumber</h1>
+    <span class="badge rounded-pill fs-6 @Ui.Badge(Model.Status)">@Model.Status.ToDisplayName()</span>
+</div>
+
+<div class="card border-0 shadow-sm mb-3">
+    <div class="card-body">
+        <h6 class="text-muted small text-uppercase mb-2">Customer</h6>
+        <div class="fs-5 fw-semibold">@Model.CustomerName</div>
+        <div class="text-muted mb-3">@Model.CustomerPhone</div>
+        <div class="d-grid gap-2 d-sm-flex">
+            <a href="tel:@Ui.Tel(Model.CustomerPhone)" class="btn btn-success btn-lg rounded-pill flex-fill"><i class="bi bi-telephone-fill me-2"></i>Call customer</a>
+            <a href="@Ui.WhatsApp(Model.CustomerPhone)" target="_blank" rel="noopener" class="btn btn-outline-success btn-lg rounded-pill flex-fill"><i class="bi bi-whatsapp me-2"></i>WhatsApp</a>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-3">
+    <div class="card-body">
+        <h6 class="text-muted small text-uppercase mb-2">Delivery address</h6>
+        <p class="mb-2"><i class="bi bi-geo-alt-fill text-danger me-2"></i>@fullAddress</p>
+        <p class="small text-muted mb-3"><i class="bi bi-clock me-2"></i>@Ui.Date(Model.DeliveryDate) &middot; @(Model.DeliveryTime ?? "Any time")</p>
+        <a href="@Ui.MapLink(fullAddress)" target="_blank" rel="noopener" class="btn btn-outline-primary rounded-pill"><i class="bi bi-map me-1"></i>Open in Maps</a>
+        @if (!string.IsNullOrEmpty(Model.OrderNotes))
+        {
+            <div class="alert alert-info small mt-3 mb-0"><strong>Customer note:</strong> @Model.OrderNotes</div>
+        }
+        @if (!string.IsNullOrEmpty(Model.Notes))
+        {
+            <div class="alert alert-warning small mt-2 mb-0"><strong>Dispatcher note:</strong> @Model.Notes</div>
+        }
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-3">
+    <div class="card-body">
+        <h6 class="text-muted small text-uppercase mb-2">Order details</h6>
+        @foreach (var i in Model.Items)
+        {
+            <div class="d-flex justify-content-between py-1 border-bottom">
+                <span><span class="badge bg-primary me-2">@i.Quantity&times;</span>@i.ProductName</span>
+                <span>@Ui.Money(i.LineTotal)</span>
+            </div>
+        }
+        <div class="d-flex justify-content-between pt-2"><span class="text-muted">Delivery fee</span><span>@Ui.Money(Model.DeliveryFee)</span></div>
+        <div class="d-flex justify-content-between fw-bold fs-5 pt-1"><span>Total</span><span class="text-primary">@Ui.Money(Model.OrderTotal)</span></div>
+        <div class="mt-2">
+            <span class="badge rounded-pill bg-light text-dark border">@Model.PaymentMethod.ToDisplayName()</span>
+            <span class="badge rounded-pill @Ui.Badge(Model.PaymentStatus)">@Model.PaymentStatus</span>
+        </div>
+        @if (Model.PaymentMethod == PaymentMethod.CashOnDelivery && Model.PaymentStatus == PaymentStatus.Pending)
+        {
+            <div class="alert alert-success small mt-3 mb-0"><i class="bi bi-cash-coin me-1"></i>Collect <strong>@Ui.Money(Model.OrderTotal)</strong> in cash.</div>
+        }
+    </div>
+</div>
+
+<div class="action-bar">
+    @switch (Model.Status)
+    {
+        case DeliveryStatus.Assigned:
+            <form asp-action="Accept" asp-route-id="@Model.Id" method="post">
+                <button class="btn btn-primary btn-lg w-100 rounded-pill" data-loading="Accepting..."><i class="bi bi-hand-thumbs-up me-2"></i>Accept delivery</button>
+            </form>
+            break;
+        case DeliveryStatus.Accepted:
+            <form asp-action="Start" asp-route-id="@Model.Id" method="post" data-confirm="Have you loaded the order? The customer will be told you are on the way.">
+                <button class="btn btn-primary btn-lg w-100 rounded-pill"><i class="bi bi-truck me-2"></i>Mark Out for Delivery</button>
+            </form>
+            break;
+        case DeliveryStatus.OutForDelivery:
+            <form asp-action="Complete" asp-route-id="@Model.Id" method="post" data-confirm="Confirm the order was handed to the customer@(Model.PaymentMethod == PaymentMethod.CashOnDelivery ? " and cash was collected" : "")?">
+                <button class="btn btn-success btn-lg w-100 rounded-pill"><i class="bi bi-house-check me-2"></i>Mark as Delivered</button>
+            </form>
+            break;
+    }
+</div>

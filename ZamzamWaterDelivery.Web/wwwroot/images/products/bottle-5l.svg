@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 240" role="img" aria-label="5 liter water bottle">
+  <defs>
+    <linearGradient id="w" x1="0" x2="1"><stop offset="0" stop-color="#8fdcff"/><stop offset=".45" stop-color="#e2f6ff"/><stop offset="1" stop-color="#6ccaf7"/></linearGradient>
+  </defs>
+  <ellipse cx="100" cy="228" rx="44" ry="7" fill="#0a2540" opacity=".12"/>
+  <rect x="86" y="30" width="28" height="16" rx="4" fill="#0b5ed7"/>
+  <path d="M88 46h24v10c16 4 26 14 26 28v126a12 12 0 0 1-12 12H74a12 12 0 0 1-12-12V84c0-14 10-24 26-28z" fill="url(#w)" stroke="#4fb8ec" stroke-width="3"/>
+  <rect x="70" y="120" width="60" height="36" rx="7" fill="#0b5ed7"/>
+  <text x="100" y="144" text-anchor="middle" font-family="Poppins, Arial, sans-serif" font-size="18" font-weight="700" fill="#fff">5L</text>
+</svg>

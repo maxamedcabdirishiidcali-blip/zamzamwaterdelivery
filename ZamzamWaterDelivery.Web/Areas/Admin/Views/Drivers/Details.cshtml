@@ -1,0 +1,62 @@
+@model DriverDetailsViewModel
+@{
+    var d = Model.Driver;
+    ViewData["Title"] = d.FullName;
+}
+<a asp-action="Index" class="btn btn-link text-decoration-none ps-0"><i class="bi bi-arrow-left me-1"></i>Drivers</a>
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4 text-center">
+                <div class="avatar avatar-lg mx-auto mb-3">@d.FullName[0]</div>
+                <h1 class="h5 fw-bold mb-1">@d.FullName</h1>
+                <span class="badge rounded-pill @Ui.Badge(d.Status)">@d.Status</span>
+                @if (!d.IsActive) { <span class="badge rounded-pill bg-danger-subtle text-danger-emphasis">Deactivated</span> }
+                <ul class="list-unstyled text-start small mt-4">
+                    <li class="mb-2"><i class="bi bi-telephone text-primary me-2"></i><a href="tel:@Ui.Tel(d.PhoneNumber)">@d.PhoneNumber</a></li>
+                    <li class="mb-2"><i class="bi bi-envelope text-primary me-2"></i>@d.Email</li>
+                    <li class="mb-2"><i class="bi bi-truck text-primary me-2"></i>@d.VehicleType · @d.VehicleNumber</li>
+                    <li class="mb-2"><i class="bi bi-card-text text-primary me-2"></i>License @d.LicenseNumber</li>
+                    <li><i class="bi bi-check2-all text-primary me-2"></i>@d.CompletedDeliveries delivered · @d.ActiveDeliveries active</li>
+                </ul>
+                <div class="d-grid gap-2">
+                    <a asp-action="Edit" asp-route-id="@d.Id" class="btn btn-outline-primary"><i class="bi bi-pencil me-1"></i>Edit driver</a>
+                    <form asp-action="ToggleActive" asp-route-id="@d.Id" method="post" data-confirm="@(d.IsActive ? "Deactivate this driver? They will be signed out and set Offline." : "Activate this driver?")">
+                        <input type="hidden" name="isActive" value="@((!d.IsActive).ToString().ToLower())" />
+                        <button class="btn w-100 @(d.IsActive ? "btn-outline-warning" : "btn-success")">@(d.IsActive ? "Deactivate account" : "Activate account")</button>
+                    </form>
+                    <form asp-action="Delete" asp-route-id="@d.Id" method="post" data-confirm="Delete @d.FullName? Their login will be removed. Past deliveries stay in the reports.">
+                        <button class="btn btn-outline-danger w-100"><i class="bi bi-trash me-1"></i>Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 pt-3 d-flex justify-content-between">
+                <h6 class="fw-semibold mb-0">Recent deliveries</h6>
+                <a asp-controller="Deliveries" asp-action="Index" asp-route-DriverId="@d.Id" class="small">View all</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 small">
+                    <thead class="table-light"><tr><th>Order #</th><th>Customer</th><th>Address</th><th>Status</th><th>Delivered</th></tr></thead>
+                    <tbody>
+                        @if (Model.Deliveries.Count == 0)
+                        {
+                            <tr><td colspan="5" class="text-center text-muted py-4">No deliveries yet.</td></tr>
+                        }
+                        @foreach (var x in Model.Deliveries)
+                        {
+                            <tr class="clickable-row" data-href="@Url.Action("Details", "Orders", new { id = x.OrderId })">
+                                <td class="fw-semibold">@x.OrderNumber</td><td>@x.CustomerName</td><td class="text-muted">@x.DeliveryAddress</td>
+                                <td><span class="badge rounded-pill @Ui.Badge(x.Status)">@x.Status.ToDisplayName()</span></td>
+                                <td>@Ui.When(x.DeliveredAt)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,52 @@
+@model ProductDto
+@{
+    ViewData["Title"] = Model.Name;
+}
+<section class="container py-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="Index">Products</a></li>
+            <li class="breadcrumb-item active" aria-current="page">@Model.Name</li>
+        </ol>
+    </nav>
+    <div class="row g-5 align-items-center">
+        <div class="col-md-6">
+            <div class="product-detail-img p-4 rounded-4">
+                <img src="@(Model.ImageUrl ?? "/images/products/bottle-20l.svg")" alt="@Model.Name" class="img-fluid" />
+            </div>
+        </div>
+        <div class="col-md-6">
+            <span class="badge bg-primary-subtle text-primary-emphasis mb-2">@Model.CategoryName</span>
+            <h1 class="fw-bold">@Model.Name</h1>
+            <div class="display-6 fw-bold text-primary my-3">@Ui.Money(Model.Price)</div>
+            <p class="lead text-muted">@Model.Description</p>
+            <p>
+                @if (Model.InStock)
+                {
+                    <span class="text-success"><i class="bi bi-check-circle me-1"></i>In stock (@Model.StockQuantity available)</span>
+                }
+                else
+                {
+                    <span class="text-danger"><i class="bi bi-x-circle me-1"></i>Out of stock</span>
+                }
+            </p>
+            @if (User.IsInRole(Roles.Customer))
+            {
+                <form asp-controller="Cart" asp-action="Add" method="post" class="d-flex gap-2 add-to-cart-form mt-4" style="max-width:360px">
+                    <input type="hidden" name="ProductId" value="@Model.Id" />
+                    <input type="number" name="Quantity" value="1" min="1" max="@Math.Max(1, Model.StockQuantity)" class="form-control form-control-lg" style="max-width:110px" aria-label="Quantity" />
+                    <button class="btn btn-primary btn-lg flex-grow-1 rounded-pill" @(Model.InStock ? "" : "disabled")><i class="bi bi-cart-plus me-2"></i>Add to cart</button>
+                </form>
+            }
+            else if (User.Identity?.IsAuthenticated != true)
+            {
+                <a class="btn btn-primary btn-lg rounded-pill px-4 mt-4" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Context.Request.Path">Login to order</a>
+            }
+            <ul class="list-unstyled mt-4 small text-muted">
+                <li><i class="bi bi-truck text-primary me-2"></i>Delivered the same day in Garowe</li>
+                <li><i class="bi bi-cash-coin text-primary me-2"></i>Pay cash on delivery</li>
+                <li><i class="bi bi-shield-check text-primary me-2"></i>Purified and quality checked</li>
+            </ul>
+        </div>
+    </div>
+</section>

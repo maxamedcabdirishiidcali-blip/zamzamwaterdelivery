@@ -1,0 +1,28 @@
+@model IReadOnlyList<CategoryDto>
+@{
+    ViewData["Title"] = "Categories";
+}
+<partial name="_PageHeader" model='new PageHeader("Categories", Url.Action("Create"), "Add Category")' />
+
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light"><tr><th>Name</th><th class="d-none d-md-table-cell">Description</th><th>Products</th><th class="text-end">Actions</th></tr></thead>
+            <tbody>
+                @if (Model.Count == 0)
+                {
+                    <tr><td colspan="4" class="text-center text-muted py-5">No categories yet. <a asp-action="Create">Add the first category</a>.</td></tr>
+                }
+                @foreach (var c in Model)
+                {
+                    <tr>
+                        <td class="fw-semibold">@c.Name</td>
+                        <td class="d-none d-md-table-cell text-muted">@c.Description</td>
+                        <td><a asp-controller="Products" asp-action="Index" asp-route-CategoryId="@c.Id">@c.ProductCount</a></td>
+                        <td><partial name="_RowActions" model='new RowActions(c.Name, Url.Action("Edit", new { id = c.Id }), Url.Action("Delete", new { id = c.Id }))' /></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

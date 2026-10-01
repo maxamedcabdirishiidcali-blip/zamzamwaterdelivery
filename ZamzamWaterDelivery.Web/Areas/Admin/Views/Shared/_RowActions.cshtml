@@ -1,0 +1,19 @@
+@model RowActions
+<div class="d-flex justify-content-end gap-1 flex-nowrap">
+    @if (Model.ViewUrl is not null)
+    {
+        <a href="@Model.ViewUrl" class="btn btn-sm btn-light border"><i class="bi bi-eye"></i><span class="d-none d-xl-inline ms-1">View</span></a>
+    }
+    @if (Model.EditUrl is not null)
+    {
+        <a href="@Model.EditUrl" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i><span class="d-none d-md-inline ms-1">Edit</span></a>
+    }
+    @if (Model.DeleteUrl is not null)
+    {
+        <form action="@Model.DeleteUrl" method="post" class="d-inline"
+              data-confirm="Delete '@Model.Name'? @(Model.DeleteWarning ?? "This cannot be undone.")">
+            @Html.AntiForgeryToken()
+            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i><span class="d-none d-md-inline ms-1">Delete</span></button>
+        </form>
+    }
+</div>

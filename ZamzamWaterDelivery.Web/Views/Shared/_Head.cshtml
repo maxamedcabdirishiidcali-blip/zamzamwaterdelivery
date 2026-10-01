@@ -1,0 +1,14 @@
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="@Company.Name - @Company.Tagline" />
+<meta name="csrf-token" content="@Antiforgery.GetAndStoreTokens(Context).RequestToken" />
+<meta name="theme-color" content="#0b5ed7" />
+<title>@ViewData["Title"] | @Company.Name</title>
+<link rel="icon" type="image/svg+xml" href="~/images/logo-mark.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+<link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />

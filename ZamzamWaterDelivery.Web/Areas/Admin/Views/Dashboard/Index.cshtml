@@ -1,0 +1,117 @@
+@model DashboardStatsDto
+@{
+    ViewData["Title"] = "Dashboard";
+    var cards = new (string Label, string Value, string Icon, string Color, string? Link)[]
+    {
+        ("Total Orders", Model.TotalOrders.ToString("N0"), "bi-receipt", "primary", Url.Action("Index", "Orders")),
+        ("Pending Orders", Model.PendingOrders.ToString("N0"), "bi-hourglass-split", "warning", Url.Action("Index", "Orders", new { Status = OrderStatus.Pending })),
+        ("Completed Orders", Model.CompletedOrders.ToString("N0"), "bi-check2-all", "success", Url.Action("Index", "Orders", new { Status = OrderStatus.Delivered })),
+        ("Cancelled Orders", Model.CancelledOrders.ToString("N0"), "bi-x-circle", "danger", Url.Action("Index", "Orders", new { Status = OrderStatus.Cancelled })),
+        ("Total Customers", Model.TotalCustomers.ToString("N0"), "bi-people", "info", Url.Action("Index", "Customers")),
+        ("Total Revenue", Ui.Money(Model.TotalRevenue), "bi-cash-stack", "success", Url.Action("Index", "Reports")),
+        ("Active Drivers", Model.ActiveDrivers.ToString("N0"), "bi-person-badge", "primary", Url.Action("Index", "Drivers")),
+        ("Today's Orders", $"{Model.TodaysOrders} · {Ui.Money(Model.TodaysSales)}", "bi-calendar-check", "info", Url.Action("Index", "Orders", new { DateFrom = DateTime.Today.ToString("yyyy-MM-dd") }))
+    };
+}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-2">
+    <div>
+        <h1 class="h3 fw-bold mb-0">Dashboard</h1>
+        <small class="text-muted">Overview for @DateTime.Today.ToString("dddd, dd MMMM yyyy")</small>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-controller="Orders" asp-action="Index" asp-route-Status="Pending" class="btn btn-warning btn-sm"><i class="bi bi-hourglass-split me-1"></i>Pending orders</a>
+        <a asp-controller="Reports" asp-action="Index" class="btn btn-primary btn-sm"><i class="bi bi-file-earmark-bar-graph me-1"></i>Reports</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    @foreach (var card in cards)
+    {
+        <div class="col-6 col-xl-3">
+            <a href="@card.Link" class="stat-card card border-0 shadow-sm h-100 text-decoration-none">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <div class="stat-icon bg-@card.Color-subtle text-@card.Color"><i class="bi @card.Icon"></i></div>
+                    <div class="min-w-0">
+                        <div class="text-muted small text-truncate">@card.Label</div>
+                        <div class="fs-5 fw-bold text-body text-truncate">@card.Value</div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    }
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-xl-8">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center pt-3">
+                <h6 class="fw-semibold mb-0">Sales</h6>
+                <div class="btn-group btn-group-sm" role="group" aria-label="Sales period">
+                    <input type="radio" class="btn-check" name="salesPeriod" id="salesDaily" value="daily" checked />
+                    <label class="btn btn-outline-primary" for="salesDaily">Daily</label>
+                    <input type="radio" class="btn-check" name="salesPeriod" id="salesMonthly" value="monthly" />
+                    <label class="btn btn-outline-primary" for="salesMonthly">Monthly</label>
+                </div>
+            </div>
+            <div class="card-body"><div class="chart-box"><canvas id="salesChart" aria-label="Sales chart"></canvas></div></div>
+        </div>
+    </div>
+    <div class="col-xl-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 pt-3"><h6 class="fw-semibold mb-0">Orders by status</h6></div>
+            <div class="card-body"><div class="chart-box"><canvas id="statusChart" aria-label="Orders by status chart"></canvas></div></div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-xl-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 pt-3"><h6 class="fw-semibold mb-0">Popular products (units)</h6></div>
+            <div class="card-body"><div class="chart-box"><canvas id="productsChart" aria-label="Popular products chart"></canvas></div></div>
+        </div>
+    </div>
+    <div class="col-xl-8">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center pt-3">
+                <h6 class="fw-semibold mb-0">Recent orders</h6>
+                <a asp-controller="Orders" asp-action="Index" class="small">View all</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 small">
+                    <thead class="table-light"><tr><th>Order</th><th>Customer</th><th class="d-none d-md-table-cell">Date</th><th>Total</th><th>Status</th></tr></thead>
+                    <tbody>
+                        @foreach (var o in Model.RecentOrders)
+                        {
+                            <tr class="clickable-row" data-href="@Url.Action("Details", "Orders", new { id = o.Id })">
+                                <td class="fw-semibold">@o.OrderNumber</td>
+                                <td>@o.CustomerName</td>
+                                <td class="d-none d-md-table-cell">@Ui.When(o.OrderDate)</td>
+                                <td>@Ui.Money(o.Total)</td>
+                                <td><span class="badge rounded-pill @Ui.Badge(o.Status)">@o.Status.ToDisplayName()</span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (Model.LowStockProducts.Count > 0)
+{
+    <div class="alert alert-warning border-0 shadow-sm mt-4 d-flex gap-3 align-items-start">
+        <i class="bi bi-exclamation-triangle fs-4"></i>
+        <div>
+            <strong>Low stock:</strong>
+            @string.Join(", ", Model.LowStockProducts.Select(p => $"{p.Name} ({p.StockQuantity})"))
+            <a asp-controller="Products" asp-action="Index" asp-route-SortBy="stock" class="ms-2">Update stock</a>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script src="~/js/admin-dashboard.js" asp-append-version="true"></script>
+    <script>ZamzamDashboard.init('@Url.Action("Charts")', '@Company.CurrencySymbol');</script>
+}

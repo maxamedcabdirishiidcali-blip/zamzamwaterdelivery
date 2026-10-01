@@ -1,0 +1,83 @@
+@model ReportViewModel
+@{
+    ViewData["Title"] = "Reports";
+    var r = Model.Request;
+    var reportTypes = new (ReportType Type, string Icon, string Description)[]
+    {
+        (ReportType.DailySales, "bi-calendar-day", "Orders and sales per day"),
+        (ReportType.MonthlySales, "bi-calendar-month", "Orders and sales per month"),
+        (ReportType.Orders, "bi-receipt", "Every order in the period"),
+        (ReportType.Customers, "bi-people", "Customer activity and spend"),
+        (ReportType.ProductSales, "bi-droplet", "Units and sales per product"),
+        (ReportType.DriverDeliveries, "bi-truck", "Deliveries per driver")
+    };
+    object ExportRoute(ExportFormat format) => new { Type = r.Type, From = r.From?.ToString("yyyy-MM-dd"), To = r.To?.ToString("yyyy-MM-dd"), format };
+}
+<h1 class="h3 fw-bold mb-4">Reports</h1>
+
+<form method="get" class="card border-0 shadow-sm p-3 mb-4">
+    <input type="hidden" name="generate" value="true" />
+    <div class="row g-2 mb-3">
+        @foreach (var (type, icon, description) in reportTypes)
+        {
+            <div class="col-6 col-md-4 col-xl-2">
+                <input type="radio" class="btn-check" name="Type" id="rt-@type" value="@type" checked="@(r.Type == type)" />
+                <label class="btn btn-outline-primary w-100 h-100 report-type" for="rt-@type">
+                    <i class="bi @icon d-block fs-4 mb-1"></i>
+                    <span class="fw-semibold d-block">@type.ToDisplayName()</span>
+                    <small class="d-none d-md-block">@description</small>
+                </label>
+            </div>
+        }
+    </div>
+    <div class="row g-2 align-items-end">
+        <div class="col-6 col-md-3"><label class="form-label small" for="From">From</label><input type="date" id="From" name="From" value="@r.From?.ToString("yyyy-MM-dd")" class="form-control" /></div>
+        <div class="col-6 col-md-3"><label class="form-label small" for="To">To</label><input type="date" id="To" name="To" value="@r.To?.ToString("yyyy-MM-dd")" class="form-control" /></div>
+        <div class="col-md-3 d-grid"><button class="btn btn-primary" data-loading="Generating..."><i class="bi bi-play-circle me-1"></i>Generate report</button></div>
+        <div class="col-md-3"><small class="text-muted">Leave dates empty for the last 30 days (12 months for monthly sales).</small></div>
+    </div>
+</form>
+
+@if (Model.Report is { } report)
+{
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 pt-3 d-flex flex-column flex-md-row justify-content-between gap-2">
+            <div>
+                <h5 class="fw-bold mb-0">@report.Title</h5>
+                <small class="text-muted">@report.Subtitle</small>
+            </div>
+            <div class="btn-group" role="group" aria-label="Export">
+                <a class="btn btn-outline-danger btn-sm" href="@Url.Action("Export", ExportRoute(ExportFormat.Pdf))"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</a>
+                <a class="btn btn-outline-success btn-sm" href="@Url.Action("Export", ExportRoute(ExportFormat.Excel))"><i class="bi bi-file-earmark-excel me-1"></i>Excel</a>
+                <a class="btn btn-outline-secondary btn-sm" href="@Url.Action("Export", ExportRoute(ExportFormat.Csv))"><i class="bi bi-filetype-csv me-1"></i>CSV</a>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row g-2 mb-3">
+                @foreach (var (key, value) in report.Summary)
+                {
+                    <div class="col-6 col-md-3"><div class="summary-tile"><small class="text-muted d-block">@key</small><strong>@value</strong></div></div>
+                }
+            </div>
+            <div class="table-responsive report-table">
+                <table class="table table-sm table-striped table-hover align-middle small mb-0">
+                    <thead class="table-primary sticky-top"><tr>@foreach (var c in report.Columns) { <th class="text-nowrap">@c</th> }</tr></thead>
+                    <tbody>
+                        @if (report.Rows.Count == 0)
+                        {
+                            <tr><td colspan="@report.Columns.Count" class="text-center text-muted py-4">No data for the selected period.</td></tr>
+                        }
+                        @foreach (var row in report.Rows)
+                        {
+                            <tr>@foreach (var cell in row) { <td>@cell</td> }</tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="empty-state"><i class="bi bi-bar-chart-line"></i><h5>Choose a report and click Generate</h5><p class="text-muted">You can then export it as PDF, Excel or CSV.</p></div>
+}

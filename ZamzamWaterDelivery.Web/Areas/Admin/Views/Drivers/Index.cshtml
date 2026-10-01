@@ -1,0 +1,41 @@
+@model ListViewModel<DriverDto, DriverFilter>
+@{
+    ViewData["Title"] = "Drivers";
+}
+<partial name="_PageHeader" model='new PageHeader("Drivers", Url.Action("Create"), "Add Driver")' />
+<partial name="_SearchBar" model="Model.Filter.Search" />
+
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr><th>Driver</th><th class="d-none d-md-table-cell">Phone</th><th class="d-none d-lg-table-cell">Vehicle</th><th>Status</th><th class="d-none d-md-table-cell">Delivered</th><th class="text-end">Actions</th></tr>
+            </thead>
+            <tbody>
+                @if (Model.Result.Items.Count == 0)
+                {
+                    <tr><td colspan="6" class="text-center text-muted py-5">No drivers found. <a asp-action="Create">Add the first driver</a>.</td></tr>
+                }
+                @foreach (var d in Model.Result.Items)
+                {
+                    <tr>
+                        <td>
+                            <span class="fw-semibold">@d.FullName</span>
+                            @if (!d.IsActive) { <span class="badge bg-danger-subtle text-danger-emphasis ms-1">Deactivated</span> }
+                            <div class="small text-muted">@d.Email</div>
+                        </td>
+                        <td class="d-none d-md-table-cell"><a href="tel:@Ui.Tel(d.PhoneNumber)">@d.PhoneNumber</a></td>
+                        <td class="d-none d-lg-table-cell small">@d.VehicleType · @d.VehicleNumber</td>
+                        <td><span class="badge rounded-pill @Ui.Badge(d.Status)">@d.Status</span></td>
+                        <td class="d-none d-md-table-cell">@d.CompletedDeliveries</td>
+                        <td>
+                            <partial name="_RowActions" model='new RowActions(d.FullName, Url.Action("Edit", new { id = d.Id }), Url.Action("Delete", new { id = d.Id }),
+                                Url.Action("Details", new { id = d.Id }), "Their login will be removed. Past deliveries stay in the reports.")' />
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+<partial name="_Pager" model="PagerModel.From(Model.Result)" />

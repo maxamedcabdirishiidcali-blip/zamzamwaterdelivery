@@ -1,0 +1,27 @@
+@model CategoryUpsertDto
+@{
+    var id = ViewData["CategoryId"] as int?;
+    ViewData["Title"] = id is null ? "Add Category" : "Edit Category";
+}
+<a asp-action="Index" class="btn btn-link text-decoration-none ps-0"><i class="bi bi-arrow-left me-1"></i>Categories</a>
+<h1 class="h3 fw-bold mb-4">@ViewData["Title"]</h1>
+<form asp-action="@(id is null ? "Create" : "Edit")" asp-route-id="@id" method="post" novalidate style="max-width:640px">
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            <div class="mb-3">
+                <label asp-for="Name" class="form-label"></label>
+                <input asp-for="Name" class="form-control" autofocus />
+                <span asp-validation-for="Name" class="text-danger small"></span>
+            </div>
+            <div class="mb-4">
+                <label asp-for="Description" class="form-label"></label>
+                <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="Description" class="text-danger small"></span>
+            </div>
+            <button class="btn btn-primary" data-loading="Saving..."><i class="bi bi-check2 me-1"></i>Save</button>
+            <a asp-action="Index" class="btn btn-light ms-1">Cancel</a>
+        </div>
+    </div>
+</form>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <partial name="_Head" />
+</head>
+<body class="driver-body d-flex flex-column min-vh-100">
+    <nav class="navbar driver-navbar sticky-top">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center gap-2 text-white" asp-area="Driver" asp-controller="Dashboard" asp-action="Index">
+                <img src="~/images/logo-mark-white.svg" alt="" width="32" height="32" />
+                <span class="fw-semibold">Zamzam <small class="opacity-75">Driver</small></span>
+            </a>
+            <div class="d-flex align-items-center gap-1 text-white driver-nav-icons">
+                @await Component.InvokeAsync("NotificationBell")
+                <form asp-area="" asp-controller="Account" asp-action="Logout" method="post">
+                    <button class="btn btn-link text-white" aria-label="Logout" title="Logout"><i class="bi bi-box-arrow-right fs-5"></i></button>
+                </form>
+            </div>
+        </div>
+    </nav>
+    <main class="container py-3 flex-grow-1">
+        @RenderBody()
+    </main>
+    <partial name="_Alerts" />
+    <partial name="_Scripts" />
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,168 @@
+@model HomeViewModel
+@{
+    ViewData["Title"] = "Pure Water Delivered";
+    var orderUrl = User.IsInRole(Roles.Customer) ? Url.Action("Index", "Products") : Url.Action("Register", "Account");
+}
+
+<!-- Hero -->
+<section class="hero">
+    <div class="container position-relative">
+        <div class="row align-items-center g-5 py-5">
+            <div class="col-lg-6 text-center text-lg-start">
+                <span class="badge rounded-pill hero-badge mb-3"><i class="bi bi-droplet-half me-1"></i>Fresh &amp; purified every day</span>
+                <h1 class="display-5 fw-bold text-white mb-3">Clean drinking water, delivered to your door.</h1>
+                <p class="lead text-white-75 mb-4">@Company.Tagline Order 20L, 10L, 5L bottles or cartons in a few taps and track your delivery live.</p>
+                <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center justify-content-lg-start">
+                    <a href="@orderUrl" class="btn btn-light btn-lg rounded-pill px-4 fw-semibold text-primary"><i class="bi bi-cart-plus me-2"></i>Order Water Now</a>
+                    <a href="#how-it-works" class="btn btn-outline-light btn-lg rounded-pill px-4">How it works</a>
+                </div>
+                <div class="d-flex gap-4 justify-content-center justify-content-lg-start mt-4 text-white">
+                    <div><div class="fs-4 fw-bold">2h</div><small class="text-white-75">Avg. delivery</small></div>
+                    <div><div class="fs-4 fw-bold">@Ui.Money(Model.DeliveryFee)</div><small class="text-white-75">Delivery fee</small></div>
+                    <div><div class="fs-4 fw-bold">100%</div><small class="text-white-75">Purified</small></div>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center">
+                <img src="~/images/hero-delivery.svg" alt="Water bottles delivered by van" class="img-fluid hero-img" />
+            </div>
+        </div>
+    </div>
+    <svg class="hero-wave" viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true"><path fill="#ffffff" d="M0,64L60,69.3C120,75,240,85,360,80C480,75,600,53,720,48C840,43,960,53,1080,64C1200,75,1320,85,1380,90.7L1440,96L1440,120L0,120Z"></path></svg>
+</section>
+
+<!-- Products & pricing -->
+<section class="container py-5" id="products">
+    <div class="text-center mb-5">
+        <span class="section-kicker">Our Products</span>
+        <h2 class="fw-bold">Choose your water</h2>
+        <p class="text-muted">Transparent prices. Free delivery on orders over @Ui.Money(Model.FreeDeliveryThreshold).</p>
+    </div>
+    <div class="row g-4">
+        @foreach (var product in Model.Products.Take(8))
+        {
+            <div class="col-sm-6 col-lg-3"><partial name="_ProductCard" model="product" /></div>
+        }
+    </div>
+    <div class="text-center mt-4">
+        <a asp-controller="Products" asp-action="Index" class="btn btn-outline-primary rounded-pill px-4">View all products <i class="bi bi-arrow-right"></i></a>
+    </div>
+</section>
+
+<!-- Pricing table -->
+<section class="bg-light-blue py-5">
+    <div class="container">
+        <div class="text-center mb-4">
+            <span class="section-kicker">Pricing</span>
+            <h2 class="fw-bold">Simple, fair pricing</h2>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-primary"><tr><th>Product</th><th class="text-end">Price</th></tr></thead>
+                            <tbody>
+                                @foreach (var p in Model.Products)
+                                {
+                                    <tr><td><i class="bi bi-droplet text-primary me-2"></i>@p.Name</td><td class="text-end fw-semibold">@Ui.Money(p.Price)</td></tr>
+                                }
+                                <tr class="table-light">
+                                    <td><i class="bi bi-truck text-primary me-2"></i>Delivery fee <small class="text-muted">(free over @Ui.Money(Model.FreeDeliveryThreshold))</small></td>
+                                    <td class="text-end fw-semibold">@Ui.Money(Model.DeliveryFee)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How it works -->
+<section class="container py-5" id="how-it-works">
+    <div class="text-center mb-5">
+        <span class="section-kicker">How It Works</span>
+        <h2 class="fw-bold">Water at your door in 4 easy steps</h2>
+    </div>
+    <div class="row g-4 text-center">
+        @{
+            var steps = new[]
+            {
+                ("bi-person-plus", "Create an account", "Register with your phone number and delivery address."),
+                ("bi-cart-check", "Choose your water", "Add bottles or cartons to your cart and pick a delivery time."),
+                ("bi-truck", "We deliver", "A Zamzam driver brings your order straight to your door."),
+                ("bi-cash-coin", "Pay on delivery", "Pay in cash when your water arrives. Mobile money coming soon.")
+            };
+        }
+        @for (var i = 0; i < steps.Length; i++)
+        {
+            <div class="col-sm-6 col-lg-3">
+                <div class="step-card h-100 p-4">
+                    <div class="step-number">@(i + 1)</div>
+                    <div class="step-icon-lg mb-3"><i class="bi @steps[i].Item1"></i></div>
+                    <h5 class="fw-semibold">@steps[i].Item2</h5>
+                    <p class="text-muted small mb-0">@steps[i].Item3</p>
+                </div>
+            </div>
+        }
+    </div>
+</section>
+
+<!-- Testimonials -->
+<section class="bg-light-blue py-5" id="testimonials">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="section-kicker">Testimonials</span>
+            <h2 class="fw-bold">Loved by families and offices</h2>
+        </div>
+        <div class="row g-4">
+            @{
+                var testimonials = new[]
+                {
+                    ("Hodan A.", "Homeowner, Garowe", "The 20 liter bottles always arrive on time. I can see exactly where my order is - no more phone calls!"),
+                    ("Abdullahi M.", "Office manager", "We order cartons for the whole office every week. Fast delivery and the driver is always polite."),
+                    ("Fartun I.", "Restaurant owner", "Clean water at a fair price. Paying cash on delivery makes it simple for my business.")
+                };
+            }
+            @foreach (var (name, role, quote) in testimonials)
+            {
+                <div class="col-md-4">
+                    <div class="card testimonial-card border-0 shadow-sm h-100 p-4">
+                        <div class="text-warning mb-2">@for (var s = 0; s < 5; s++) {<i class="bi bi-star-fill"></i>}</div>
+                        <p class="mb-4">&ldquo;@quote&rdquo;</p>
+                        <div class="d-flex align-items-center gap-3 mt-auto">
+                            <div class="avatar">@name[0]</div>
+                            <div><div class="fw-semibold">@name</div><small class="text-muted">@role</small></div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- Contact -->
+<section class="container py-5" id="contact">
+    <div class="row g-4 align-items-stretch">
+        <div class="col-lg-5">
+            <span class="section-kicker">Contact</span>
+            <h2 class="fw-bold mb-3">We're here to help</h2>
+            <p class="text-muted">Questions about an order, bulk supply for your office or event? Reach out any time during working hours.</p>
+            <ul class="list-unstyled contact-list mt-4">
+                <li><i class="bi bi-telephone"></i><div><strong>Phone</strong><br /><a href="tel:@Ui.Tel(Company.Phone)">@Company.Phone</a></div></li>
+                <li><i class="bi bi-whatsapp"></i><div><strong>WhatsApp</strong><br /><a href="@Ui.WhatsApp(Company.WhatsApp)" target="_blank" rel="noopener">@Company.WhatsApp</a></div></li>
+                <li><i class="bi bi-envelope"></i><div><strong>Email</strong><br /><a href="mailto:@Company.Email">@Company.Email</a></div></li>
+                <li><i class="bi bi-geo-alt"></i><div><strong>Address</strong><br />@Company.Address</div></li>
+                <li><i class="bi bi-clock"></i><div><strong>Working hours</strong><br />@Company.WorkingHours</div></li>
+            </ul>
+        </div>
+        <div class="col-lg-7">
+            <div class="cta-card h-100 p-5 d-flex flex-column justify-content-center text-white">
+                <h3 class="fw-bold">Running low on water?</h3>
+                <p class="text-white-75 mb-4">Place your order in under a minute. We'll take care of the rest.</p>
+                <div><a href="@orderUrl" class="btn btn-light btn-lg rounded-pill px-4 text-primary fw-semibold"><i class="bi bi-droplet me-2"></i>Order Water Now</a></div>
+            </div>
+        </div>
+    </div>
+</section>
